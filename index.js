@@ -70,6 +70,9 @@ const animate = (canvas, plaintext, matrices) => {
   let last = matrices.length - 1;
   let ciphertext = plaintext;
 
+  let playing = false;
+  let timeoutID = null;
+
   draw_matrix(canvas, ciphertext);
 
   let frame = () => {
@@ -81,12 +84,41 @@ const animate = (canvas, plaintext, matrices) => {
 
     current += 1;
 
-    if (current < last) {
-      window.setTimeout(frame, 100);
-    };
+    if (current < last && playing) {
+      timeoutID = window.setTimeout(frame, 100);
+    } else {
+      timeoutID = null;
+    }
   };
 
-  window.setTimeout(frame, 100);
+  let togglePlay = () => {
+    if (playing || timeoutID != null) {
+      playing = false;
+      if (timeoutID != null) {
+        window.clearTimeout(timeoutID);
+        timeoutID = null;
+      }
+    } else {
+      playing = true;
+      timeoutID = window.setTimeout(frame, 0);
+    }
+  };
+
+  let reset = () => {
+    playing = false;
+    if (timeoutID != null) {
+      window.clearTimeout(timeoutID);
+    }
+    current = 0;
+    ciphertext = plaintext;
+    draw_matrix(canvas, ciphertext);
+  };
+
+  let isPlaying = () => playing;
+
+  return { togglePlay,
+           reset,
+           isPlaying };
 };
 
 const hegp = { rotation,
