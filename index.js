@@ -51,11 +51,6 @@ const draw_matrix = (canvas, matrix) => {
   window.mat_size = mat_size;
 
   let blocksize = { width: w / cs, height: h / rs };
-  console.log(cs);
-  console.log(rs);
-  console.log("mat size: " + mat_size);
-  console.log("blocksize: " + blocksize);
-  console.log(blocksize);
 
   math.forEach(matrix, (v, ix, _) => {
     let x = aix(ix, 0) * blocksize.width;
@@ -70,10 +65,35 @@ const draw_matrix = (canvas, matrix) => {
   });
 };
 
+const animate = (canvas, plaintext, matrices) => {
+  let current = 0;
+  let last = matrices.length - 1;
+  let ciphertext = plaintext;
+
+  draw_matrix(canvas, ciphertext);
+
+  let frame = () => {
+
+    let key = matrices[current];
+
+    ciphertext = math.multiply(key, ciphertext);
+    draw_matrix(canvas, ciphertext);
+
+    current += 1;
+
+    if (current < last) {
+      window.setTimeout(frame, 100);
+    };
+  };
+
+  window.setTimeout(frame, 100);
+};
+
 const hegp = { rotation,
                rand_rot,
                key_series,
-               draw_matrix };
+               draw_matrix,
+               animate };
 
 window.hegp = hegp;
 
