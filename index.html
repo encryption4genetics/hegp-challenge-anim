@@ -13,15 +13,13 @@
       <button id="reset">Reset</button>
     </div>
     <script>
-      let mats = [];
-      for (i=0; i<50; i++) {
-        mats.push(hegp.rand_rot(10));
-      }
+      let keys = hegp.key_series(50, 10);
+
       let canvas = document.getElementById('canvas');
       let playBtn = document.getElementById('play');
       let resetBtn = document.getElementById('reset');
 
-      let anim = hegp.animate(canvas, hegp.gen_plaintext(10), mats);
+      let anim = hegp.animate(canvas, hegp.gen_plaintext(10), keys);
       playBtn.addEventListener('click', anim.togglePlay);
       resetBtn.addEventListener('click', anim.reset);
     </script>

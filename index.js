@@ -1,4 +1,5 @@
 const math = require('mathjs');
+const chroma = require('./chroma.min.js');
 
 // Generate n-by-n rotation matrix around given dimensions, with the
 // given angle
@@ -68,7 +69,14 @@ const matrix_size = (matrix) => {
 
 // Create an ImageBitmap of the matrix, with one pixel per matrix entry
 // returns a promise
-const matrix_bitmap = (ctx, matrix) => {
+const matrix_bitmap = (ctx, matrix, colorscale) => {
+
+  let colorfun = null;
+  if (colorscale === undefined) {
+    colorfun = chroma.scale(['#010122', 'red']).mode('hsl');
+  } else {
+    colorfun = colorscale;
+  }
 
   let size = matrix_size(matrix);
   let imageData = ctx.createImageData(size.width, size.height);
@@ -78,9 +86,11 @@ const matrix_bitmap = (ctx, matrix) => {
     let y = aix(ix, 1);
     let i = 4 * (x + y * size.width);
 
-    imageData.data[i]   = Math.floor(v * 255);
-    imageData.data[i+1] = 0; // Math.floor(v * 255);
-    imageData.data[i+2] = 0; // Math.floor(v * 255);
+    let color = colorfun(v).rgb();
+
+    imageData.data[i]   = color[0];
+    imageData.data[i+1] = color[1];
+    imageData.data[i+2] = color[2];
     imageData.data[i+3] = 255;
   });
 
@@ -129,7 +139,7 @@ const draw_matrix_rects = (canvas, matrix) => {
 
 const animate = (canvas, plaintext, keys) => {
   let current = 0;
-  let last = keys.length - 1;
+  let last = keys.encrypt_series.length - 1;
   let final_ct = math.multiply(keys.encrypt_product, plaintext);
   let ciphertext = plaintext;
 
@@ -140,13 +150,13 @@ const animate = (canvas, plaintext, keys) => {
 
   draw_matrix(canvas, ciphertext);
 
-  let render = () => {
+  let render = (reverse) => {
     if (current === 0) {
       ciphertext = plaintext;
     } else if (current === last) {
       ciphertext = final_ct;
     } else {
-      let key = matrices[current];
+      let key = reverse ? keys.decrypt_series[current] : keys.encrypt_series[current];
       ciphertext = math.multiply(key, ciphertext);
     }
     draw_matrix(canvas, ciphertext);
