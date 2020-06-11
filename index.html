@@ -21,7 +21,7 @@
       let playBtn = document.getElementById('play');
       let resetBtn = document.getElementById('reset');
 
-      let anim = hegp.animate(canvas, math.identity(10), mats);
+      let anim = hegp.animate(canvas, hegp.gen_plaintext(10), mats);
       playBtn.addEventListener('click', anim.togglePlay);
       resetBtn.addEventListener('click', anim.reset);
     </script>

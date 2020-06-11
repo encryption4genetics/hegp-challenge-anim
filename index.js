@@ -38,8 +38,49 @@ const key_series = (num, dim) => {
 
 const aix = (a, ix) => math.subset(a, math.index(ix));
 
+const matrix_size = (matrix) => {
+  let mat_size = math.size(matrix);
+  let cs = aix(mat_size, 0);
+  let rs = aix(mat_size, 1);
+  return {width: cs, height: rs};
+}
+
+// Create an ImageBitmap of the matrix, with one pixel per matrix entry
+// returns a promise
+const matrix_bitmap = (ctx, matrix) => {
+
+  let size = matrix_size(matrix);
+  let imageData = ctx.createImageData(size.width, size.height);
+
+  math.forEach(matrix, (v, ix, _) => {
+    let x = aix(ix, 0);
+    let y = aix(ix, 1);
+    let i = 4 * (x + y * size.width);
+
+    imageData.data[i]   = Math.floor(v * 255);
+    imageData.data[i+1] = 0; // Math.floor(v * 255);
+    imageData.data[i+2] = 0; // Math.floor(v * 255);
+    imageData.data[i+3] = 255;
+  });
+
+  return createImageBitmap(imageData);
+};
+
+const draw_matrix_bitmap = (canvas, matrix) => {
+  let ctx = canvas.getContext('2d');
+  ctx.imageSmoothingEnabled = false;
+  let w = canvas.width;
+  let h = canvas.height;
+
+  let bitmap = matrix_bitmap(ctx, matrix);
+
+  bitmap.then((img) => {
+    ctx.drawImage(img, 0, 0, w, h)
+  });
+};
+
 // Draw a matrix to a canvas, treating each entry as a grayscale pixel
-const draw_matrix = (canvas, matrix) => {
+const draw_matrix_rects = (canvas, matrix) => {
   let ctx = canvas.getContext('2d');
   let w = canvas.width;
   let h = canvas.height;
@@ -72,6 +113,8 @@ const animate = (canvas, plaintext, matrices) => {
 
   let playing = false;
   let timeoutID = null;
+
+  let draw_matrix = draw_matrix_bitmap;
 
   draw_matrix(canvas, ciphertext);
 
@@ -121,12 +164,15 @@ const animate = (canvas, plaintext, matrices) => {
            isPlaying };
 };
 
+// TODO make this randomly generated or read from some data
+const gen_plaintext = (n) => math.identity(n);
+
 const hegp = { rotation,
                rand_rot,
                key_series,
-               draw_matrix,
+               draw_matrix_rects,
+               draw_matrix_bitmap,
+               gen_plaintext,
                animate };
 
 window.hegp = hegp;
-
-window.math = math;
