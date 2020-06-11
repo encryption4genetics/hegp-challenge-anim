@@ -25,16 +25,37 @@ const rand_rot = (n) => {
   return rotation(n, r, a, b);
 }
 
-// Generate a series of rotation matrices whose product will be the encryption key
+// Generate a series of rotation matrices whose product will be the
+// encryption key; return both the rotation matrices, their inverses,
+// and their products, going both ways.
 const key_series = (num, dim) => {
-  let result = [];
+  let encrypt = [];
+  let decrypt = [];
+  let encrypt_product = null;
+  let decrypt_product = null;
   for (let i=0; i<num; i++) {
-    result.push(rand_rot(dim));
+    let enc = rand_rot(dim);
+    let dec = math.transpose(enc);
+    if (encrypt_product === null) {
+      encrypt_product = enc;
+    } else {
+      encrypt_product = math.multiply(encrypt_product, enc);
+    }
+    if (decrypt_product === null) {
+      decrypt_product = dec;
+    } else {
+      // TODO should this multiplication be the other way around?
+      decrypt_product = math.multiply(decrypt_product, dec);
+    }
+    encrypt.push(enc);
+    decrypt.push(dec);
   }
 
-  return result;
+  return { encrypt_series: encrypt,
+           decrypt_series: decrypt,
+           encrypt_product,
+           decrypt_product }
 };
-
 
 const aix = (a, ix) => math.subset(a, math.index(ix));
 
