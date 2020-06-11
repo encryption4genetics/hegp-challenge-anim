@@ -127,9 +127,10 @@ const draw_matrix_rects = (canvas, matrix) => {
   });
 };
 
-const animate = (canvas, plaintext, matrices) => {
+const animate = (canvas, plaintext, keys) => {
   let current = 0;
-  let last = matrices.length - 1;
+  let last = keys.length - 1;
+  let final_ct = math.multiply(keys.encrypt_product, plaintext);
   let ciphertext = plaintext;
 
   let playing = false;
@@ -139,13 +140,35 @@ const animate = (canvas, plaintext, matrices) => {
 
   draw_matrix(canvas, ciphertext);
 
-  let frame = () => {
-
-    let key = matrices[current];
-
-    ciphertext = math.multiply(key, ciphertext);
+  let render = () => {
+    if (current === 0) {
+      ciphertext = plaintext;
+    } else if (current === last) {
+      ciphertext = final_ct;
+    } else {
+      let key = matrices[current];
+      ciphertext = math.multiply(key, ciphertext);
+    }
     draw_matrix(canvas, ciphertext);
+  }
 
+  let pause = () => {
+    playing = false;
+    if (timeoutID != null) {
+      window.clearTimeout(timeoutID);
+      timeoutID = null;
+    }
+  };
+
+  let play = () => {
+    playing = true;
+    if (timeoutID === null) {
+      timeoutID = window.setTimeout(frame, 0);
+    }
+  };
+
+  let frame = () => {
+    render();
     current += 1;
 
     if (current < last && playing) {
@@ -157,32 +180,47 @@ const animate = (canvas, plaintext, matrices) => {
 
   let togglePlay = () => {
     if (playing || timeoutID != null) {
-      playing = false;
-      if (timeoutID != null) {
-        window.clearTimeout(timeoutID);
-        timeoutID = null;
-      }
+      pause();
     } else {
-      playing = true;
-      timeoutID = window.setTimeout(frame, 0);
+      play();
     }
   };
 
   let reset = () => {
-    playing = false;
-    if (timeoutID != null) {
-      window.clearTimeout(timeoutID);
-    }
+    pause();
     current = 0;
-    ciphertext = plaintext;
-    draw_matrix(canvas, ciphertext);
+    render();
+  };
+
+  let goto_end = () => {
+    pause();
+    current = last;
+    render();
+  };
+
+  let next = () => {
+    pause();
+    current = Math.min(current+1, last);
+    render();
+  };
+
+  let prev = () => {
+    pause();
+    current = Math.max(current-1, 0);
+    render();
   };
 
   let isPlaying = () => playing;
 
+  let currentMatrix = () => ciphertext;
+
   return { togglePlay,
+           next,
+           prev,
            reset,
-           isPlaying };
+           goto_end,
+           isPlaying,
+           currentMatrix, };
 };
 
 // TODO make this randomly generated or read from some data
