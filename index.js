@@ -143,6 +143,7 @@ const animate = (canvas, plaintext, keys) => {
   let final_ct = math.multiply(keys.encrypt_product, plaintext);
   let ciphertext = plaintext;
 
+  let rewinding = false;
   let playing = false;
   let timeoutID = null;
 
@@ -172,16 +173,36 @@ const animate = (canvas, plaintext, keys) => {
 
   let play = () => {
     playing = true;
+    rewinding = false;
+    if (timeoutID === null) {
+      timeoutID = window.setTimeout(frame, 0);
+    }
+  };
+
+  let rewind = () => {
+    playing = true;
+    rewinding = true;
     if (timeoutID === null) {
       timeoutID = window.setTimeout(frame, 0);
     }
   };
 
   let frame = () => {
-    render();
-    current += 1;
+    if (rewinding) {
+      render(true);
+      current -= 1;
+      if (current < 0 ) {
+        playing = false;
+      }
+    } else {
+      render();
+      current += 1;
+      if (current > last) {
+        playing = false;
+      }
+    }
 
-    if (current < last && playing) {
+    if (playing) {
       timeoutID = window.setTimeout(frame, 100);
     } else {
       timeoutID = null;
@@ -192,7 +213,12 @@ const animate = (canvas, plaintext, keys) => {
     if (playing || timeoutID != null) {
       pause();
     } else {
-      play();
+      if (rewinding) {
+
+        rewind();
+      } else {
+        play();
+      }
     }
   };
 
@@ -217,7 +243,7 @@ const animate = (canvas, plaintext, keys) => {
   let prev = () => {
     pause();
     current = Math.max(current-1, 0);
-    render();
+    render(true);
   };
 
   let isPlaying = () => playing;
@@ -225,6 +251,7 @@ const animate = (canvas, plaintext, keys) => {
   let currentMatrix = () => ciphertext;
 
   return { togglePlay,
+           rewind,
            next,
            prev,
            reset,

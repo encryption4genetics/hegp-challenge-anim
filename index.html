@@ -9,19 +9,36 @@
     <script src="./index.js"></script>
     <div id="container">
       <canvas id="canvas" width=500 height=500></canvas>
+      <button id="rewind">Rewind</button>
       <button id="play">Play</button>
       <button id="reset">Reset</button>
+      <button id="end">To End</button>
+      <button id="prev">Prev</button>
+      <button id="next">Next</button>
     </div>
     <script>
       let keys = hegp.key_series(50, 10);
 
       let canvas = document.getElementById('canvas');
+
+      let rewindBtn = document.getElementById('rewind');
       let playBtn = document.getElementById('play');
       let resetBtn = document.getElementById('reset');
+      let endBtn = document.getElementById('end');
+      let nextBtn = document.getElementById('next');
+      let prevBtn = document.getElementById('prev');
 
       let anim = hegp.animate(canvas, hegp.gen_plaintext(10), keys);
+
+      rewindBtn.addEventListener('click', anim.rewind);
       playBtn.addEventListener('click', anim.togglePlay);
+
       resetBtn.addEventListener('click', anim.reset);
+      endBtn.addEventListener('click', anim.goto_end);
+
+      nextBtn.addEventListener('click', anim.next);
+      prevBtn.addEventListener('click', anim.prev);
+
     </script>
   </body>
 </html>
