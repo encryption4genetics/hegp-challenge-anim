@@ -111,7 +111,15 @@ const draw_matrix_bitmap = (canvas, matrix) => {
 };
 
 // Draw a matrix to a canvas, treating each entry as a grayscale pixel
-const draw_matrix_rects = (canvas, matrix) => {
+const draw_matrix_rects = (canvas, matrix, colorscale) => {
+
+  let colorfun = null;
+  if (colorscale === undefined) {
+    colorfun = chroma.scale(['#010122', 'red']).mode('hsl');
+  } else {
+    colorfun = colorscale;
+  }
+
   let ctx = canvas.getContext('2d');
   let w = canvas.width;
   let h = canvas.height;
@@ -128,11 +136,9 @@ const draw_matrix_rects = (canvas, matrix) => {
     let x = aix(ix, 0) * blocksize.width;
     let y = aix(ix, 1) * blocksize.height;
 
-    let fs = "rgb(" + Math.floor(v * 255) + ",0,0)";
+    let color = colorfun(v).hex();
 
-    window.matfs = fs;
-
-    ctx.fillStyle = fs;
+    ctx.fillStyle = color;
     ctx.fillRect(x, y, blocksize.width, blocksize.height);
   });
 };
@@ -147,7 +153,7 @@ const animate = (canvas, plaintext, keys) => {
   let playing = false;
   let timeoutID = null;
 
-  let draw_matrix = draw_matrix_bitmap;
+  let draw_matrix = draw_matrix_rects;
 
   draw_matrix(canvas, ciphertext);
 
