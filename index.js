@@ -40,13 +40,13 @@ const key_series = (num, dim) => {
     if (encrypt_product === null) {
       encrypt_product = enc;
     } else {
-      encrypt_product = math.multiply(encrypt_product, enc);
+      encrypt_product = math.multiply(enc, encrypt_product);
     }
     if (decrypt_product === null) {
       decrypt_product = dec;
     } else {
       // TODO should this multiplication be the other way around?
-      decrypt_product = math.multiply(decrypt_product, dec);
+      decrypt_product = math.multiply(dec, decrypt_product);
     }
     encrypt.push(enc);
     decrypt.push(dec);
@@ -157,15 +157,18 @@ const animate = (canvas, plaintext, keys) => {
 
   draw_matrix(canvas, ciphertext);
 
-  let render = (reverse) => {
+  let updateMatrix = (reverse) => {
     if (current === 0) {
-      ciphertext = plaintext;
+      // ciphertext = plaintext;
     } else if (current === last) {
-      ciphertext = final_ct;
+      // ciphertext = final_ct;
     } else {
       let key = reverse ? keys.decrypt_series[current] : keys.encrypt_series[current];
       ciphertext = math.multiply(key, ciphertext);
     }
+  };
+
+  let render = (reverse) => {
     draw_matrix(canvas, ciphertext);
   }
 
@@ -174,6 +177,14 @@ const animate = (canvas, plaintext, keys) => {
     if (timeoutID != null) {
       window.clearTimeout(timeoutID);
       timeoutID = null;
+    }
+  };
+
+  const unpause = (reverse) => {
+    playing = true;
+    rewinding = reverse;
+    if (timeoutID === null) {
+      timeoutID = window.setTimeout(frame, 0);
     }
   };
 
@@ -195,17 +206,9 @@ const animate = (canvas, plaintext, keys) => {
 
   let frame = () => {
     if (rewinding) {
-      render(true);
-      current -= 1;
-      if (current < 0 ) {
-        playing = false;
-      }
+      prev();
     } else {
-      render();
-      current += 1;
-      if (current > last) {
-        playing = false;
-      }
+      next();
     }
 
     if (playing) {
@@ -216,39 +219,52 @@ const animate = (canvas, plaintext, keys) => {
   };
 
   let togglePlay = () => {
-    if (playing || timeoutID != null) {
+    if ((playing || timeoutID != null) && !rewinding) {
       pause();
     } else {
-      if (rewinding) {
+      play();
+    }
+  };
 
-        rewind();
-      } else {
-        play();
-      }
+  let toggleRewind = () => {
+    if ((playing || timeoutID != null) && rewinding) {
+      pause();
+    } else {
+      rewind();
     }
   };
 
   let reset = () => {
     pause();
+    ciphertext = plaintext;
+    // updateMatrix();
     current = 0;
     render();
   };
 
   let goto_end = () => {
     pause();
+    ciphertext = final_ct;
+    // updateMatrix();
     current = last;
     render();
   };
 
   let next = () => {
-    pause();
+    updateMatrix();
     current = Math.min(current+1, last);
+    if (current === last) {
+      playing = false;
+    }
     render();
   };
 
   let prev = () => {
-    pause();
+    updateMatrix(true);
     current = Math.max(current-1, 0);
+    if (current === 0) {
+      playing = false;
+    }
     render(true);
   };
 
@@ -257,7 +273,7 @@ const animate = (canvas, plaintext, keys) => {
   let currentMatrix = () => ciphertext;
 
   return { togglePlay,
-           rewind,
+           toggleRewind,
            next,
            prev,
            reset,

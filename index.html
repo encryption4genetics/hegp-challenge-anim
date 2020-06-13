@@ -30,7 +30,7 @@
 
       let anim = hegp.animate(canvas, hegp.gen_plaintext(10), keys);
 
-      rewindBtn.addEventListener('click', anim.rewind);
+      rewindBtn.addEventListener('click', anim.toggleRewind);
       playBtn.addEventListener('click', anim.togglePlay);
 
       resetBtn.addEventListener('click', anim.reset);
