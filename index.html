@@ -18,7 +18,8 @@
       <button id="next">Next</button>
     </div>
     <script>
-      let keys = hegp.key_series(50, 10);
+      let keys = hegp.key_series(50, 20);
+      let plaintext = hegp.gen_plaintext(20, 50);
 
       let canvas = document.getElementById('canvas');
 
@@ -30,7 +31,7 @@
       let nextBtn = document.getElementById('next');
       let prevBtn = document.getElementById('prev');
 
-      let anim = hegp.animate(canvas, hegp.gen_plaintext(10), keys);
+      let anim = hegp.animate(canvas, plaintext, keys);
 
       rewindBtn.addEventListener('click', () => anim.prev(true));
       pauseBtn.addEventListener('click', anim.pause);

@@ -252,7 +252,34 @@ const animate = (canvas, plaintext, keys) => {
 };
 
 // TODO make this randomly generated or read from some data
-const gen_plaintext = (n) => math.identity(n);
+const gen_plaintext = (w, h) => {
+  let rows = [];
+  const gen_row = () => {
+    let row = [];
+    const v1 = Math.random();
+    const v2 = Math.random();
+    const v3 = Math.random();
+    let p1 = Math.floor(Math.random() * w);
+    let p2 = Math.floor(Math.random() * (w - p1)) + p2;
+    for (let x=0; x<w; x++) {
+      if (x < p1) {
+        row.push(v1);
+      } else if (x < p2) {
+        row.push(v2);
+      } else {
+        row.push(v3);
+      }
+    }
+    return row;
+  };
+
+  for (let y=0; y<h; y++) {
+    rows.push(gen_row());
+  }
+
+  let matrix = math.matrix(rows);
+  return math.transpose(matrix);
+};
 
 const hegp = { rotation,
                rand_rot,
