@@ -144,142 +144,111 @@ const draw_matrix_rects = (canvas, matrix, colorscale) => {
 };
 
 const animate = (canvas, plaintext, keys) => {
-  let current = 0;
   let last = keys.encrypt_series.length - 1;
   let final_ct = math.multiply(keys.encrypt_product, plaintext);
+
   let ciphertext = plaintext;
 
-  let rewinding = false;
-  let playing = false;
+  let currentStep = -1;
+  let atStart = () => currentStep === -1;
+  let atEnd = () => currentStep === last+1;
+
+  let paused = "paused";
+  let playing = "playing";
+  let rewinding = "rewinding";
+  let animState = paused;
+
+  let delay = 100.0;
+
   let timeoutID = null;
 
-  let draw_matrix = draw_matrix_rects;
-
-  draw_matrix(canvas, ciphertext);
-
-  let updateMatrix = (reverse) => {
-    if (current === 0) {
-      // ciphertext = plaintext;
-    } else if (current === last) {
-      // ciphertext = final_ct;
-    } else {
-      let key = reverse ? keys.decrypt_series[current] : keys.encrypt_series[current];
-      ciphertext = math.multiply(key, ciphertext);
-    }
-  };
-
-  let render = (reverse) => {
+  const render = () => {
+    let draw_matrix = draw_matrix_rects;
     draw_matrix(canvas, ciphertext);
   }
+  render();
 
-  let pause = () => {
-    playing = false;
-    if (timeoutID != null) {
+  const stopAnimation = () => {
+    if (timeoutID !== null) {
       window.clearTimeout(timeoutID);
       timeoutID = null;
     }
   };
 
-  const unpause = (reverse) => {
-    playing = true;
-    rewinding = reverse;
-    if (timeoutID === null) {
-      timeoutID = window.setTimeout(frame, 0);
+  const next = (animate) => {
+    stopAnimation();
+    if (currentStep < last) {
+      // increment the current step
+      currentStep += 1;
+
+      // update the matrix
+      let key = keys.encrypt_series[currentStep];
+      ciphertext = math.multiply(key, ciphertext);
+
+      // render to canvas
+      render();
+
+      // if currentStep is now the last step, set it to the end to
+      // signify encryption steps are complete
+      if (currentStep >= last) {
+        currentStep = last + 1;
+        stopAnimation();
+      } else if (animate === true) {
+        timeoutID = window.setTimeout(next, delay, true)
+      }
     }
   };
 
-  let play = () => {
-    playing = true;
-    rewinding = false;
-    if (timeoutID === null) {
-      timeoutID = window.setTimeout(frame, 0);
-    }
-  };
+  const prev = (animate) => {
+    stopAnimation();
+    if (currentStep >= 0) {
+      if (atEnd()) {
+        currentStep -= 1;
+      }
+      // update the matrix
+      let key = keys.decrypt_series[currentStep];
+      ciphertext = math.multiply(key, ciphertext);
+      currentStep -= 1;
 
-  let rewind = () => {
-    playing = true;
-    rewinding = true;
-    if (timeoutID === null) {
-      timeoutID = window.setTimeout(frame, 0);
-    }
-  };
+      // render to canvas
+      render();
 
-  let frame = () => {
-    if (rewinding) {
-      prev();
-    } else {
-      next();
+      // if currentStep is now the last step, set it to the end to
+      // signify encryption steps are complete
+      if (currentStep < 0) {
+        currentStep = -1;
+        stopAnimation();
+      } else if (animate === true) {
+        timeoutID = window.setTimeout(prev, delay, true)
+      }
     }
+  }
 
-    if (playing) {
-      timeoutID = window.setTimeout(frame, 100);
-    } else {
-      timeoutID = null;
-    }
-  };
 
-  let togglePlay = () => {
-    if ((playing || timeoutID != null) && !rewinding) {
-      pause();
-    } else {
-      play();
-    }
-  };
-
-  let toggleRewind = () => {
-    if ((playing || timeoutID != null) && rewinding) {
-      pause();
-    } else {
-      rewind();
-    }
-  };
-
-  let reset = () => {
-    pause();
+  const goto_start = () => {
+    stopAnimation();
     ciphertext = plaintext;
-    // updateMatrix();
-    current = 0;
+    currentStep = -1;
     render();
   };
 
-  let goto_end = () => {
-    pause();
+  const goto_end = () => {
+    stopAnimation();
     ciphertext = final_ct;
-    // updateMatrix();
-    current = last;
+    currentStep = last + 1;
     render();
-  };
-
-  let next = () => {
-    updateMatrix();
-    current = Math.min(current+1, last);
-    if (current === last) {
-      playing = false;
-    }
-    render();
-  };
-
-  let prev = () => {
-    updateMatrix(true);
-    current = Math.max(current-1, 0);
-    if (current === 0) {
-      playing = false;
-    }
-    render(true);
   };
 
   let isPlaying = () => playing;
 
   let currentMatrix = () => ciphertext;
 
-  return { togglePlay,
-           toggleRewind,
-           next,
+  return { next,
            prev,
-           reset,
+           goto_start,
            goto_end,
-           isPlaying,
-           currentMatrix, };
+           pause: stopAnimation
+         };
 };
 
 // TODO make this randomly generated or read from some data

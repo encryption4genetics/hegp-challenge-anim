@@ -10,6 +10,7 @@
     <div id="container">
       <canvas id="canvas" width=500 height=500></canvas>
       <button id="rewind">Rewind</button>
+      <button id="pause">Pause</button>
       <button id="play">Play</button>
       <button id="reset">Reset</button>
       <button id="end">To End</button>
@@ -22,6 +23,7 @@
       let canvas = document.getElementById('canvas');
 
       let rewindBtn = document.getElementById('rewind');
+      let pauseBtn = document.getElementById('pause');
       let playBtn = document.getElementById('play');
       let resetBtn = document.getElementById('reset');
       let endBtn = document.getElementById('end');
@@ -30,10 +32,11 @@
 
       let anim = hegp.animate(canvas, hegp.gen_plaintext(10), keys);
 
-      rewindBtn.addEventListener('click', anim.toggleRewind);
-      playBtn.addEventListener('click', anim.togglePlay);
+      rewindBtn.addEventListener('click', () => anim.prev(true));
+      pauseBtn.addEventListener('click', anim.pause);
+      playBtn.addEventListener('click', () => anim.next(true));
 
-      resetBtn.addEventListener('click', anim.reset);
+      resetBtn.addEventListener('click', anim.goto_start);
       endBtn.addEventListener('click', anim.goto_end);
 
       nextBtn.addEventListener('click', anim.next);
