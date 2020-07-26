@@ -1,0 +1,39 @@
+* HEGP animation
+
+* Install
+
+Install npm and run
+
+: npm install
+: npm add yarn
+
+you may find yarn in ~./node_modules/yarn/bin/yarn~
+
+: yarn add --dev parcel@next
+: yarn parcel build index.js
+: yarn parcel serve index.html
+
+alternatively
+
+#+begin_src sh
+cd hegp-challenge-anim
+
+npm install
+  npm WARN hegp-anim@1.0.0 No description
+  npm WARN hegp-anim@1.0.0 No repository field.
+added 9 packages from 8 contributors and audited 9 packages in 1.116s
+found 0 vulnerabilities
+
+parcel build index.html
+  Built in 38.45s.
+
+dist/hegp-challenge-anim.49f0dc77.js.map     3.14 MB     379ms
+dist/hegp-challenge-anim.49f0dc77.js         1.13 MB    26.17s
+dist/index.html                               1.1 KB    11.80s
+
+cd dist
+
+darkhttpd .
+  darkhttpd/1.12, copyright (c) 2003-2016 Emil Mikulic.
+  listening on: http://0.0.0.0:8080/
+#+end_src
